@@ -1,6 +1,8 @@
 package mate.academy.jvbookstore.repository.impl;
 
 import java.util.List;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import mate.academy.jvbookstore.model.Book;
 import mate.academy.jvbookstore.repository.BookRepository;
 import org.hibernate.Session;
@@ -8,13 +10,10 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 
+@RequiredArgsConstructor
 @Repository
 public class BookRepositoryImpl implements BookRepository {
     private final SessionFactory sessionFactory;
-
-    public BookRepositoryImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
 
     @Override
     public Book save(Book book) {
@@ -43,6 +42,15 @@ public class BookRepositoryImpl implements BookRepository {
     public List<Book> findAll() {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("from Book b", Book.class).getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't get all books from db", e);
+        }
+    }
+
+    @Override
+    public Optional<Book> findById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            return Optional.ofNullable(session.get(Book.class, id));
         } catch (Exception e) {
             throw new RuntimeException("Can't get all books from db", e);
         }
