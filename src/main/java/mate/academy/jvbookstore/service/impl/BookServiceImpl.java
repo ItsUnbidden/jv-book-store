@@ -11,6 +11,7 @@ import mate.academy.jvbookstore.model.Book;
 import mate.academy.jvbookstore.repository.SpecificationBuilder;
 import mate.academy.jvbookstore.repository.book.BookRepository;
 import mate.academy.jvbookstore.service.BookService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -28,8 +29,8 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> findAll() {
-        return repository.findAll().stream()
+    public List<BookDto> findAll(Pageable pageable) {
+        return repository.findAll(pageable).stream()
                 .map(bookMapper::toDto)
                 .toList();
     }
@@ -53,8 +54,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> searchBooks(BookSearchParametersDto searchParameters) {
-        return repository.findAll(specBuilder.build(searchParameters)).stream()
+    public List<BookDto> searchBooks(BookSearchParametersDto searchParameters,
+            Pageable pageable) {
+        return repository.findAll(specBuilder.build(searchParameters), pageable).stream()
                 .map(bookMapper::toDto)
                 .toList();
     }
