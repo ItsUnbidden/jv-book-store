@@ -1,8 +1,10 @@
 package mate.academy.jvbookstore.exception;
 
+import io.jsonwebtoken.JwtException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -12,12 +14,12 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
 public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
     @Override
     @Nullable
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -33,8 +35,40 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         body.put("errors", ex.getBindingResult().getAllErrors().stream()
                 .map(this::getErrorMessage)
                 .toList());
-
         return new ResponseEntity<Object>(body, headers, status);
+    }
+
+    @ExceptionHandler({EntityNotFoundException.class, 
+            RegistrationException.class, 
+            RoleAlreadyPresentException.class,
+            PropertyReferenceException.class})
+    protected ResponseEntity<Object> handleInvalidUserInput(
+            Exception ex,
+            WebRequest request
+    ) {
+        Map<String, Object> body = new LinkedHashMap<>();
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST);
+        body.put("error", ex.getMessage());
+
+        return handleExceptionInternal(ex, body, new HttpHeaders(), 
+                HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    protected ResponseEntity<Object> handleInvalidJwtToken(
+            JwtException ex,
+            WebRequest request
+    ) {
+        Map<String, Object> body = new LinkedHashMap<>();
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.UNAUTHORIZED);
+        body.put("error", ex.getMessage());
+
+        return handleExceptionInternal(ex, body, new HttpHeaders(), 
+                HttpStatus.UNAUTHORIZED, request);
     }
 
     private String getErrorMessage(ObjectError e) {

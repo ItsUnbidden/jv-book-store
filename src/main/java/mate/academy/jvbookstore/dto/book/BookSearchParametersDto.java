@@ -1,7 +1,8 @@
-package mate.academy.jvbookstore.dto;
+package mate.academy.jvbookstore.dto.book;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import mate.academy.jvbookstore.dto.SearchParametersDto;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
