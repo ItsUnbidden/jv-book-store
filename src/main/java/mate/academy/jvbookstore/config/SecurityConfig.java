@@ -3,11 +3,9 @@ package mate.academy.jvbookstore.config;
 import lombok.RequiredArgsConstructor;
 import mate.academy.jvbookstore.exception.CustomAccessDeniedHandler;
 import mate.academy.jvbookstore.exception.CustomAuthenticationEntryPoint;
-import mate.academy.jvbookstore.model.Role.RoleName;
 import mate.academy.jvbookstore.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,14 +47,6 @@ public class SecurityConfig {
                                     "/v2/api-docs/**",
                                     "/swagger-resources/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/books")
-                    .hasRole(RoleName.ADMIN.toString())
-                    .requestMatchers(HttpMethod.DELETE, "/books/**")
-                    .hasRole(RoleName.ADMIN.toString())
-                    .requestMatchers(HttpMethod.PUT, "/books/**")
-                    .hasRole(RoleName.ADMIN.toString())
-                    .requestMatchers("/users/**")
-                    .hasRole(RoleName.ADMIN.toString())
                     .anyRequest()
                     .authenticated()
                 )

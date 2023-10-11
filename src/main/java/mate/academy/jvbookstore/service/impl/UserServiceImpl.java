@@ -6,7 +6,6 @@ import mate.academy.jvbookstore.dto.user.UserRegistrationRequestDto;
 import mate.academy.jvbookstore.dto.user.UserResponseDto;
 import mate.academy.jvbookstore.exception.EntityNotFoundException;
 import mate.academy.jvbookstore.exception.RegistrationException;
-import mate.academy.jvbookstore.exception.RoleAlreadyPresentException;
 import mate.academy.jvbookstore.mapper.UserMapper;
 import mate.academy.jvbookstore.model.Role;
 import mate.academy.jvbookstore.model.Role.RoleName;
@@ -43,15 +42,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto giveAdminRights(Long id) {
+    public UserResponseDto updateRoles(Long id, List<Role> roles) {
         User user = userRepository.findById(id).orElseThrow(() -> 
                 new EntityNotFoundException("There is no registred user with id " + id));
-        Role adminRole = roleRepository.findByName(RoleName.ADMIN).get();
-
-        if (user.getRoles().contains(adminRole)) {
-            throw new RoleAlreadyPresentException("User with id " + id + " is already admin.");
-        }
-        user.getRoles().add(adminRole);
+        user.setRoles(roles);
         return mapper.toDto(userRepository.save(user));
     }
 

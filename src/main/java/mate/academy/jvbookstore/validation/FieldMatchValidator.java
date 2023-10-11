@@ -3,6 +3,7 @@ package mate.academy.jvbookstore.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Object> {
     @Override
@@ -11,19 +12,17 @@ public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Obje
         Field[] fields = clazz.getDeclaredFields();
         Field.setAccessible(fields, true);
         boolean isFirstValueSet = false;
-        Object objToMatch = null;
+        Object firstValue = null;
 
         for (Field field : fields) {
             if (field.isAnnotationPresent(ApplyMatching.class)) {
                 try {
                     if (!isFirstValueSet) {
-                        objToMatch = field.get(value);
+                        firstValue = field.get(value);
                         isFirstValueSet = true;
-                    }
-                    Object obj = field.get(value);
-                    if (!(obj == null && objToMatch == null
-                            || obj != null && obj.equals(objToMatch))) {
-                        return false;
+                    } else {
+                        Object secondValue = field.get(value);
+                        return Objects.equals(firstValue, secondValue);
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(String.format(
@@ -32,6 +31,6 @@ public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Obje
                 }
             }
         }
-        return true;
+        return false;
     }
 }

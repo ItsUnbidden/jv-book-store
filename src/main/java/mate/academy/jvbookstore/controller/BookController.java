@@ -15,6 +15,7 @@ import mate.academy.jvbookstore.dto.book.CreateBookRequestDto;
 import mate.academy.jvbookstore.service.BookService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,6 +44,7 @@ public class BookController {
                     responseCode = "200",
                     description = "List of books"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized")
             }
@@ -55,6 +57,7 @@ public class BookController {
     }
 
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Create a new book",
             description = "Requires ADMIN role to access",
@@ -66,9 +69,11 @@ public class BookController {
                     responseCode = "200",
                     description = "New book"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "403",
                     description = "Forbidden")  
             }
@@ -91,6 +96,7 @@ public class BookController {
                     responseCode = "400",
                     description = "Book not found"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized")
             }
@@ -104,6 +110,7 @@ public class BookController {
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(
             summary = "Delete book by id", 
@@ -112,9 +119,11 @@ public class BookController {
                 @ApiResponse(
                     responseCode = "204"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "403",
                     description = "Forbidden")  
             }
@@ -128,6 +137,7 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Update book by id", 
             description = "Requires ADMIN role to access",
@@ -139,9 +149,11 @@ public class BookController {
                     responseCode = "200",
                     description = "Updated book"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "403",
                     description = "Forbidden")
             }
@@ -162,6 +174,7 @@ public class BookController {
                     responseCode = "200",
                     description = "List of books"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized")
             }

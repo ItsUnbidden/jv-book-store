@@ -9,11 +9,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import mate.academy.jvbookstore.dto.user.UserResponseDto;
+import mate.academy.jvbookstore.model.Role;
 import mate.academy.jvbookstore.service.UserService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,9 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService service;
 
-    @PatchMapping("/roles/add/admin/{id}")
+    @PatchMapping("/roles/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Give ADMIN role to a specific user",
+            summary = "Update roles for a specific user",
             description = "Requires ADMIN role to access",
             responses = {
                 @ApiResponse(
@@ -37,24 +41,31 @@ public class UserController {
                     description = "User with updated roles"),
                 @ApiResponse(
                     responseCode = "400",
-                    description = "User not found"),
+                    description = "Invalid input"),
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "403",
                     description = "Forbidden")  
             }
     )
-    public UserResponseDto giveAdminRights(
+    public UserResponseDto updateRoles(
             @Parameter(
                 description = "Id of the required user",
                 required = true) 
-            @PathVariable Long id) {
-        return service.giveAdminRights(id);
+            @PathVariable Long id, 
+            @Parameter(
+                description = "List of roles to apply to the user",
+                required = true) 
+            @RequestBody List<Role> roles) {
+        return service.updateRoles(id, roles);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Find all users",
             description = "Requires ADMIN role to access",
@@ -66,9 +77,11 @@ public class UserController {
                     responseCode = "200",
                     description = "List of all registred users"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Unauthorized"), 
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "403",
                     description = "Forbidden")  
             }

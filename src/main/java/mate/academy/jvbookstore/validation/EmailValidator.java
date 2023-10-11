@@ -3,13 +3,14 @@ package mate.academy.jvbookstore.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Value;
 
 public class EmailValidator implements ConstraintValidator<Email, String> {
-    private static final String PATTERN = "^(?=.{1,64}@)[A-Za-z0-9_-]+"
-            + "(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+    @Value("${validation.email-pattern}")
+    private String pattern;
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext context) {
-        return email != null && Pattern.compile(PATTERN).matcher(email).matches();
+        return email != null && Pattern.compile(pattern).matcher(email).matches();
     }
 }

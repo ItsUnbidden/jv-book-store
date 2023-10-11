@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import mate.academy.jvbookstore.initialization.AppStartupRunner;
 
 @Entity
 @Table(name = "roles")
@@ -19,17 +18,10 @@ public class Role {
 
     @Column(unique = true, nullable = false)
     private RoleName name;
-
-    public Role() {
-    }
-
-    public Role(RoleName name) {
-        this.name = name;
-    }
     
     /**
      * List of available roles. Roles are injected into the database 
-     * at the startup in {@link AppStartupRunner}.
+     * by liquibase.
      */
     public static enum RoleName {
         USER,

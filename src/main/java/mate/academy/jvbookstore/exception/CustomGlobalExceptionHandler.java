@@ -40,7 +40,6 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
 
     @ExceptionHandler({EntityNotFoundException.class, 
             RegistrationException.class, 
-            RoleAlreadyPresentException.class,
             PropertyReferenceException.class})
     protected ResponseEntity<Object> handleInvalidUserInput(
             Exception ex,

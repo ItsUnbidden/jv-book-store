@@ -3,16 +3,16 @@ package mate.academy.jvbookstore.repository.user;
 import java.util.List;
 import java.util.Optional;
 import mate.academy.jvbookstore.model.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    @Query("from User u left join fetch u.roles r where u.email = :email")
+    @EntityGraph(attributePaths = "roles")
     Optional<User> findByEmail(String email);
 
-    @Query("from User u left join fetch u.roles r")
+    @EntityGraph(attributePaths = "roles")
     List<User> findAll();
 
-    @Query("from User u left join fetch u.roles r where u.id = :id")
+    @EntityGraph(attributePaths = "roles")
     Optional<User> findById(Long id);
 }

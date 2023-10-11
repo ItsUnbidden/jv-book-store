@@ -43,6 +43,7 @@ public class AuthenticationController {
                     responseCode = "400",
                     description = "Provided credentials have invalid format"),
                 @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
                     responseCode = "401",
                     description = "Authentication failed")
             }
