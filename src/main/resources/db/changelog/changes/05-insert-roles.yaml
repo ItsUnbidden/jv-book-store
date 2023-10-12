@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-roles
+      author: Unbidden
+      changes:
+        - insert:  
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  valueNumeric: 0
+        - insert:  
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  valueNumeric: 1

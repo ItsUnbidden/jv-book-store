@@ -1,8 +1,8 @@
 package mate.academy.jvbookstore.repository.book.specification;
 
 import lombok.RequiredArgsConstructor;
-import mate.academy.jvbookstore.dto.BookSearchParametersDto;
 import mate.academy.jvbookstore.dto.SearchParametersDto;
+import mate.academy.jvbookstore.dto.book.BookSearchParametersDto;
 import mate.academy.jvbookstore.model.Book;
 import mate.academy.jvbookstore.repository.SpecificationBuilder;
 import mate.academy.jvbookstore.repository.SpecificationProviderManager;

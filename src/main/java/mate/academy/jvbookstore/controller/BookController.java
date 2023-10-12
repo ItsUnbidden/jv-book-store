@@ -9,12 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import mate.academy.jvbookstore.dto.BookDto;
-import mate.academy.jvbookstore.dto.BookSearchParametersDto;
-import mate.academy.jvbookstore.dto.CreateBookRequestDto;
+import mate.academy.jvbookstore.dto.book.BookDto;
+import mate.academy.jvbookstore.dto.book.BookSearchParametersDto;
+import mate.academy.jvbookstore.dto.book.CreateBookRequestDto;
 import mate.academy.jvbookstore.service.BookService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,42 +29,53 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Book Management")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(value = "/books")
+@RequestMapping("/books")
 public class BookController {
     private final BookService bookService;
 
     @GetMapping
     @Operation(
-            summary = "Get all books", 
+            summary = "Get all books",
             responses = {
                 @ApiResponse(
                     content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BookDto.class) 
-                    ),
-                    description = "List of books"  
-                )
+                        schema = @Schema(implementation = BookDto.class)),
+                    responseCode = "200",
+                    description = "List of books"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized")
             }
     )
     public List<BookDto> getAll(
             @Parameter(
-                description = "Pagination and sorting"
-            ) 
+                description = "Pagination and sorting") 
             Pageable pageable) {
         return bookService.findAll(pageable);
     }
 
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Create a new book",
+            description = "Requires ADMIN role to access",
             responses = {
                 @ApiResponse(
                     content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BookDto.class)
-                    ),
-                    description = "New book"
-                )
+                        schema = @Schema(implementation = BookDto.class)),
+                    responseCode = "200",
+                    description = "New book"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "403",
+                    description = "Forbidden")  
             }
     )
     public BookDto createBook(@RequestBody @Valid CreateBookRequestDto requestDto) {
@@ -77,55 +89,73 @@ public class BookController {
                 @ApiResponse(
                     content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BookDto.class) 
-                    ),
-                    description = "The book"  
-                ),
+                        schema = @Schema(implementation = BookDto.class)),
+                    responseCode = "200",
+                    description = "The book"),
                 @ApiResponse(
                     responseCode = "400",
-                    description = "Book not found"
-                )
+                    description = "Book not found"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized")
             }
     )
     public BookDto getBookById(
             @Parameter(
                 description = "Id of the required book",
-                required = true
-            )
+                required = true)
             @PathVariable Long id) {
         return bookService.findById(id);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(
             summary = "Delete book by id", 
+            description = "Requires ADMIN role to access",
             responses = {               
                 @ApiResponse(
-                    responseCode = "204"
-                )
+                    responseCode = "204"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "403",
+                    description = "Forbidden")  
             }
     )
     public void deleteBook(
             @Parameter(
                 description = "Id of the required book",
-                required = true
-            )
+                required = true)
             @PathVariable Long id) {
         bookService.deleteById(id);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Update book by id", 
+            description = "Requires ADMIN role to access",
             responses = {
                 @ApiResponse(
                     content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BookDto.class) 
-                    ),
-                    description = "Updated book"  
-                )
+                        schema = @Schema(implementation = BookDto.class)),
+                    responseCode = "200",
+                    description = "Updated book"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "403",
+                    description = "Forbidden")
             }
     )
     public BookDto updateBook(@PathVariable Long id, 
@@ -140,21 +170,22 @@ public class BookController {
                 @ApiResponse(
                     content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BookDto.class) 
-                    ),
-                    description = "List of books"  
-                )
+                        schema = @Schema(implementation = BookDto.class)),
+                    responseCode = "200",
+                    description = "List of books"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized")
             }
     )
     public List<BookDto> searchBooks(
             @Parameter(
                 description = "Parameters for search. "
-                + "Price should look like [{min value}, {max value}]"
-            )
+                + "Price should look like [{min value}, {max value}]")
             BookSearchParametersDto searchParameters,
             @Parameter(
-                description = "Pagination and sorting"
-            ) 
+                description = "Pagination and sorting") 
             Pageable pageable) {
         return bookService.searchBooks(searchParameters, pageable);
     }
