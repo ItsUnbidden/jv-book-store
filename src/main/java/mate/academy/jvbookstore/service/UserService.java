@@ -5,6 +5,7 @@ import mate.academy.jvbookstore.dto.user.UserRegistrationRequestDto;
 import mate.academy.jvbookstore.dto.user.UserResponseDto;
 import mate.academy.jvbookstore.exception.RegistrationException;
 import mate.academy.jvbookstore.model.Role;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
     UserResponseDto registerUser(UserRegistrationRequestDto requestDto)
@@ -12,5 +13,5 @@ public interface UserService {
 
     UserResponseDto updateRoles(Long id, List<Role> roles);
 
-    List<UserResponseDto> findAll();
+    List<UserResponseDto> findAll(Pageable pageable);
 }

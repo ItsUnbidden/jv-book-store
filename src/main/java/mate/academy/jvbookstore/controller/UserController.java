@@ -90,6 +90,6 @@ public class UserController {
             @Parameter(
                 description = "Pagination and sorting") 
             Pageable pageable) {
-        return service.findAll();
+        return service.findAll(pageable);
     }
 }

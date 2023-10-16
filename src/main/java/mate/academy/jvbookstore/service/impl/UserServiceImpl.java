@@ -13,10 +13,11 @@ import mate.academy.jvbookstore.model.User;
 import mate.academy.jvbookstore.repository.role.RoleRepository;
 import mate.academy.jvbookstore.repository.user.UserRepository;
 import mate.academy.jvbookstore.service.UserService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
@@ -50,8 +51,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> findAll() {
-        return userRepository.findAll().stream()
+    public List<UserResponseDto> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).stream()
                 .map(mapper::toDto)
                 .toList();
     }
