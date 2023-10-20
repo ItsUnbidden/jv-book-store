@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-owner-shopping-cart
+      author: Unbidden
+      changes:
+        - insert:  
+            tableName: shopping_carts
+            columns:
+              - column:
+                  name: user_id
+                  valueNumeric: 1
