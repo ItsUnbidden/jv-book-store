@@ -9,8 +9,10 @@ import mate.academy.jvbookstore.exception.RegistrationException;
 import mate.academy.jvbookstore.mapper.UserMapper;
 import mate.academy.jvbookstore.model.Role;
 import mate.academy.jvbookstore.model.Role.RoleName;
+import mate.academy.jvbookstore.model.ShoppingCart;
 import mate.academy.jvbookstore.model.User;
 import mate.academy.jvbookstore.repository.role.RoleRepository;
+import mate.academy.jvbookstore.repository.shoppingcart.ShoppingCartRepository;
 import mate.academy.jvbookstore.repository.user.UserRepository;
 import mate.academy.jvbookstore.service.UserService;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,8 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder encoder;
 
+    private final ShoppingCartRepository shoppingCartRepository;
+
     private final UserMapper mapper;
 
     @Override
@@ -39,7 +43,9 @@ public class UserServiceImpl implements UserService {
         User user = mapper.toModel(requestDto);
         user.setPassword(encoder.encode(requestDto.getPassword()));
         user.setRoles(List.of(role));
-        return mapper.toDto(userRepository.save(user));
+        userRepository.save(user);
+        createShoppingCartForUser(user);
+        return mapper.toDto(user);
     }
 
     @Override
@@ -55,5 +61,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(pageable).stream()
                 .map(mapper::toDto)
                 .toList();
+    }
+
+    private void createShoppingCartForUser(User user) {
+        ShoppingCart shoppingCart = new ShoppingCart();
+        shoppingCart.setUser(user);
+        shoppingCartRepository.save(shoppingCart);
     }
 }
