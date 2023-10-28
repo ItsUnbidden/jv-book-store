@@ -1,5 +1,6 @@
 package mate.academy.jvbookstore.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -24,7 +25,7 @@ public class ShoppingCart {
     @OneToOne(fetch = FetchType.LAZY)
     private User user;
 
-    @OneToMany(mappedBy = "shoppingCart")
+    @OneToMany(mappedBy = "shoppingCart", cascade = CascadeType.MERGE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<CartItem> cartItems;

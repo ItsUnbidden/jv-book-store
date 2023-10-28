@@ -40,7 +40,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         cartItem.setBook(book);
         cartItem.setQuantity(requestDto.getQuantity());
         cartItem.setShoppingCart(shoppingCart);
-        shoppingCart.getCartItems().add(cartItemRepository.save(cartItem));
+        shoppingCart.getCartItems().add(cartItem);
         return shoppingCartMapper.toShoppingCartDto(shoppingCartRepository.save(shoppingCart)); 
     }
 
@@ -54,12 +54,20 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public void deleteBookFromShoppingCart(Long cartItemId) {
-        cartItemRepository.deleteById(cartItemId);;
+        cartItemRepository.deleteById(cartItemId);
     }
+
+    @Override
+    public void clearUserShoppingCart(User user) {
+        ShoppingCart shoppingCart = getShoppingCartByUserId(user.getId());
+        for (CartItem cartItem : shoppingCart.getCartItems()) {
+            deleteBookFromShoppingCart(cartItem.getId());
+        }
+    } 
 
     private ShoppingCart getShoppingCartByUserId(Long userId) {
         return shoppingCartRepository.findByUserId(
                 userId).orElseThrow(() -> new EntityNotFoundException(
                 "Unable to find shopping cart by user id " + userId));
-    } 
+    }
 }
