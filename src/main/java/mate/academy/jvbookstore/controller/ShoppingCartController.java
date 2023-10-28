@@ -101,11 +101,39 @@ public class ShoppingCartController {
 
     @DeleteMapping("/cart-items/{cartItemId}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete book from shopping cart by id",             
+            responses = {               
+                @ApiResponse(
+                    responseCode = "204"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized")
+            }
+    )
     public void deleteBookFromShoppingCart(
             @Parameter(
                 description = "Id of the required cart item"
             )
             @PathVariable Long cartItemId) {
         shoppingCartService.deleteBookFromShoppingCart(cartItemId);
+    }
+
+    @DeleteMapping("/cart-items")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete all books from shopping cart",             
+            responses = {               
+                @ApiResponse(
+                    responseCode = "204"), 
+                @ApiResponse(
+                    content = @Content(schema = @Schema(hidden = true)),
+                    responseCode = "401",
+                    description = "Unauthorized")
+            }
+    )
+    public void clearShoppingCart(Authentication authentication) {
+        shoppingCartService.clearUserShoppingCart((User)authentication.getPrincipal());
     }
 }
