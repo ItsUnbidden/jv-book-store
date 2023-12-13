@@ -91,12 +91,14 @@ public class ShoppingCartController {
             }
     )
     public CartItemDto updateBookQuantity(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required cart item"
             )
             @PathVariable Long cartItemId, 
             @RequestBody @Valid CartItemDto requestDto) {
-        return shoppingCartService.updateBookQuantity(cartItemId, requestDto);
+        return shoppingCartService.updateBookQuantity(cartItemId, requestDto,
+                (User)authentication.getPrincipal());
     }
 
     @DeleteMapping("/cart-items/{cartItemId}")
@@ -113,11 +115,13 @@ public class ShoppingCartController {
             }
     )
     public void deleteBookFromShoppingCart(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required cart item"
             )
             @PathVariable Long cartItemId) {
-        shoppingCartService.deleteBookFromShoppingCart(cartItemId);
+        shoppingCartService.deleteBookFromShoppingCart(cartItemId,
+                (User)authentication.getPrincipal());
     }
 
     @DeleteMapping("/cart-items")

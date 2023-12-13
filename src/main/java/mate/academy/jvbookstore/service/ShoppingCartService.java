@@ -9,9 +9,9 @@ public interface ShoppingCartService {
 
     ShoppingCartDto addBookToShoppingCart(User user, CartItemDto requestDto);
 
-    CartItemDto updateBookQuantity(Long cartItemId, CartItemDto requestDto);
+    CartItemDto updateBookQuantity(Long cartItemId, CartItemDto requestDto, User user);
 
-    void deleteBookFromShoppingCart(Long cartItemId);
+    void deleteBookFromShoppingCart(Long cartItemId, User user);
 
     void clearUserShoppingCart(User user);
 }
