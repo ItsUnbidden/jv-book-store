@@ -15,7 +15,7 @@ public interface OrderService {
 
     OrderDto updateOrderStatus(Long orderId, UpdateStatusRequestDto requestDto);
 
-    List<OrderItemDto> findAllOrderItemsForOrderById(Long orderId, Pageable pageable);
+    List<OrderItemDto> findAllOrderItemsForOrderById(Long orderId, Pageable pageablem, User user);
 
-    OrderItemDto findOrderItemByIdForOrderById(Long orderId, Long itemId);
+    OrderItemDto findOrderItemByIdForOrderById(Long orderId, Long itemId, User user);
 }

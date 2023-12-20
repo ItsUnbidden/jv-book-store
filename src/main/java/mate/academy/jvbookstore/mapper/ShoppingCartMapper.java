@@ -27,7 +27,7 @@ public interface ShoppingCartMapper {
     @AfterMapping
     default void setCartItemDtosAndUserId(@MappingTarget ShoppingCartDto dto, 
             ShoppingCart shoppingCart) {
-        dto.setUserid(shoppingCart.getId());
+        dto.setUserId(shoppingCart.getId());
         dto.setCartItems(new HashSet<>(shoppingCart.getCartItems().stream()
                 .map(this::toCartItemDto)
                 .toList()));

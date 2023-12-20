@@ -8,7 +8,7 @@ import mate.academy.jvbookstore.dto.cartitem.CartItemDto;
 public class ShoppingCartDto {
     private Long id;
 
-    private Long userid;
+    private Long userId;
 
     private Set<CartItemDto> cartItems;
 }

@@ -132,11 +132,13 @@ public class OrderController {
             }
     )
     public List<OrderItemDto> getAllItemsFromOrder(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required order")
             @PathVariable Long orderId, 
             Pageable pageable) {
-        return orderService.findAllOrderItemsForOrderById(orderId, pageable);
+        return orderService.findAllOrderItemsForOrderById(orderId, pageable,
+                (User) authentication.getPrincipal());
     }
 
     @GetMapping("{orderId}/items/{itemId}")
@@ -159,12 +161,14 @@ public class OrderController {
             }
     )
     public OrderItemDto getOrderItemByIdFromOrder(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required order")
             @PathVariable Long orderId,
             @Parameter(
                 description = "Id of the required order item")
             @PathVariable Long itemId) {
-        return orderService.findOrderItemByIdForOrderById(orderId, itemId);
+        return orderService.findOrderItemByIdForOrderById(orderId, itemId,
+                (User)authentication.getPrincipal());
     }
 }
