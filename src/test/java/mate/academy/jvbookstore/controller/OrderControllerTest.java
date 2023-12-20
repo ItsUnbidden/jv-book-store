@@ -33,7 +33,6 @@ import mate.academy.jvbookstore.repository.order.OrderRepository;
 import mate.academy.jvbookstore.repository.shoppingcart.ShoppingCartRepository;
 import mate.academy.jvbookstore.repository.user.UserRepository;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,11 +46,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -80,7 +79,7 @@ public class OrderControllerTest {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("db/user/create-book-for-cart-items.sql"));
+                    new ClassPathResource("db/book/create-book-for-cart-items.sql"));
         }
         bookFromDb = bookRepository.findAll().get(0);
 
@@ -104,10 +103,11 @@ public class OrderControllerTest {
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
-    @Sql(scripts = "classpath:db/shoppingcart/clear-shopping-cart.sql",
-            executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
+    @Transactional
+    @Rollback
     void placeOrder_WithTwoCartItems_CreatedOrder(
-            @Autowired ShoppingCartRepository shoppingCartRepository) throws Exception {
+            @Autowired ShoppingCartRepository shoppingCartRepository,
+            @Autowired OrderRepository orderRepository) throws Exception {
         ShoppingCart ownersShoppingCart = shoppingCartRepository.findAll().get(0);
         ownersShoppingCart.setUser(owner);
 
@@ -125,6 +125,19 @@ public class OrderControllerTest {
         ownersShoppingCart.getCartItems().add(cartItem2);
         shoppingCartRepository.save(ownersShoppingCart);
 
+        BigDecimal expectedTotalPrice = BigDecimal.ZERO;      
+        expectedTotalPrice = expectedTotalPrice.add(cartItem1.getBook()
+                .getPrice()
+                .multiply(BigDecimal.valueOf(cartItem1.getQuantity())))
+                .add(cartItem2.getBook()
+                .getPrice()
+                .multiply(BigDecimal.valueOf(cartItem2.getQuantity())));    
+
+        OrderDto expected = new OrderDto();
+        expected.setStatus(Order.Status.CREATED);
+        expected.setTotal(expectedTotalPrice);
+        expected.setUserId(owner.getId());
+
         PlaceOrderRequestDto requestDto = new PlaceOrderRequestDto();
         requestDto.setShippingAddress("SA1");
 
@@ -134,30 +147,27 @@ public class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        OrderDto actual = objectMapper.readValue(
+        final OrderDto actual = objectMapper.readValue(
                 result.getResponse().getContentAsString(), OrderDto.class);
 
+        List<Order> ordersFromDb = orderRepository.findAll();
+        Assertions.assertEquals(1, ordersFromDb.size());
+        Order orderFromDb = ordersFromDb.get(0);
+        expected.setId(orderFromDb.getId());
+        expected.setOrderDate(orderFromDb.getOrderDate());
+        expected.setOrderItems(getOrderItemDtos(orderFromDb.getOrderItems()));
+
         Assertions.assertNotNull(actual);
-        Assertions.assertNotNull(actual.getId());
-        Assertions.assertEquals(ownersShoppingCart.getUser().getId(), actual.getUserId());
-        Assertions.assertTrue(actual.getOrderDate().isBefore(LocalDateTime.now()));
-        Assertions.assertEquals(Order.Status.CREATED, actual.getStatus());
-        Assertions.assertEquals(2, actual.getOrderItems().size());
-        BigDecimal expectedTotalPrice = BigDecimal.ZERO;      
-        expectedTotalPrice = expectedTotalPrice.add(cartItem1.getBook()
-                .getPrice()
-                .multiply(BigDecimal.valueOf(cartItem1.getQuantity())))
-                .add(cartItem2.getBook()
-                .getPrice()
-                .multiply(BigDecimal.valueOf(cartItem2.getQuantity())));      
-        Assertions.assertEquals(0, expectedTotalPrice.compareTo(actual.getTotal()));
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void getOrders_WithPageable_ListOfOneOrder(
             @Autowired OrderRepository orderRepository) throws Exception {
-        Order expected = addOrderToDb(orderRepository);
+        OrderDto expected = addOrderToDb(orderRepository);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -172,20 +182,17 @@ public class OrderControllerTest {
 
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(1, actual.length);
-        Assertions.assertEquals(expected.getId(), actual[0].getId());
-        Assertions.assertEquals(expected.getUser().getId(), actual[0].getUserId());
-        Assertions.assertEquals(expected.getStatus(), actual[0].getStatus());
-        Assertions.assertEquals(expected.getTotal(), actual[0].getTotal());
-        Assertions.assertEquals(2, actual[0].getOrderItems().size());
-        Assertions.assertEquals(new HashSet<>(getOrderItemDtos(expected)),
-                actual[0].getOrderItems());
+        Assertions.assertEquals(expected, actual[0]);
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void updateOrderStatus_ChangeToCompleted_UpdatedOrder(
             @Autowired OrderRepository orderRepository) throws Exception {
-        Order expected = addOrderToDb(orderRepository);
+        OrderDto expected = addOrderToDb(orderRepository);
+        expected.setStatus(Order.Status.COMPLETED);
 
         UpdateStatusRequestDto requestDto = new UpdateStatusRequestDto();
         requestDto.setStatus(Order.Status.COMPLETED);
@@ -200,22 +207,20 @@ public class OrderControllerTest {
                 result.getResponse().getContentAsString(), OrderDto.class);
 
         Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected.getId(), actual.getId());
-        Assertions.assertEquals(Order.Status.COMPLETED, actual.getStatus());
-        Assertions.assertEquals(expected.getTotal(), actual.getTotal());
-        Assertions.assertEquals(expected.getUser().getId(), actual.getUserId());
-        Assertions.assertEquals(new HashSet<>(getOrderItemDtos(expected)), actual.getOrderItems());
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void getAllItemsFromOrder_FirstOrderWithPageable_ListOfTwoItems(
             @Autowired OrderRepository orderRepository
     ) throws Exception {
-        Order order = addOrderToDb(orderRepository);
+        OrderDto orderDto = addOrderToDb(orderRepository);
         Pageable pageable = PageRequest.of(0, 10);
 
-        MvcResult result = mockMvc.perform(get("/orders/" + order.getId() + "/items")
+        MvcResult result = mockMvc.perform(get("/orders/" + orderDto.getId() + "/items")
                 .content(objectMapper.writeValueAsString(pageable))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -226,19 +231,22 @@ public class OrderControllerTest {
 
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(2, actual.length);
-        Assertions.assertEquals(getOrderItemDtos(order), new HashSet<>(Arrays.asList(actual)));
+        Assertions.assertEquals(orderDto.getOrderItems(), new HashSet<>(Arrays.asList(actual)));
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void getOrderItemByIdFromOrder_WithCorrectIds_CorrectOrderItem(
             @Autowired OrderRepository orderRepository
     ) throws Exception {
-        Order order = addOrderToDb(orderRepository);
+        OrderDto orderDto = addOrderToDb(orderRepository);
 
-        ArrayList<OrderItemDto> dtos = new ArrayList<>(getOrderItemDtos(order));
+        ArrayList<OrderItemDto> dtos = 
+                new ArrayList<>(orderDto.getOrderItems());
 
-        MvcResult result = mockMvc.perform(get("/orders/" + order.getId() + "/items/"
+        MvcResult result = mockMvc.perform(get("/orders/" + orderDto.getId() + "/items/"
                 + dtos.get(0).getId()))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -248,17 +256,6 @@ public class OrderControllerTest {
 
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(dtos.get(0), actual);
-    }
-
-    @AfterEach
-    void deleteAllEntities(@Autowired DataSource dataSource) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(true);
-            ScriptUtils.executeSqlScript(connection, 
-                    new ClassPathResource("db/order/delete-all-order-items.sql"));
-            ScriptUtils.executeSqlScript(connection, 
-                    new ClassPathResource("db/order/delete-all-orders.sql"));
-        }
     }
 
     @AfterAll
@@ -273,10 +270,6 @@ public class OrderControllerTest {
             
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/book/delete-every-book.sql"));
-            ScriptUtils.executeSqlScript(connection, 
-                    new ClassPathResource("db/order/delete-all-order-items.sql"));
-            ScriptUtils.executeSqlScript(connection, 
-                    new ClassPathResource("db/order/delete-all-orders.sql"));
         }
     }
 
@@ -290,7 +283,7 @@ public class OrderControllerTest {
         return total;
     }
 
-    private Order addOrderToDb(@Autowired OrderRepository orderRepository) {
+    private OrderDto addOrderToDb(@Autowired OrderRepository orderRepository) {
         Order order = new Order();
         order.setOrderDate(LocalDateTime.now());
         order.setShippingAddress("SA1");
@@ -300,11 +293,21 @@ public class OrderControllerTest {
         orderItems.get(1).setOrder(order);
         order.setOrderItems(new HashSet<>(orderItems));
         order.setTotal(calculateTotalPrice(order.getOrderItems()));
-        return orderRepository.save(order);
+        orderRepository.save(order);
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setId(order.getId());
+        orderDto.setOrderDate(order.getOrderDate());
+        orderDto.setOrderItems(getOrderItemDtos(order.getOrderItems()));
+        orderDto.setStatus(order.getStatus());
+        orderDto.setTotal(order.getTotal());
+        orderDto.setUserId(order.getUser().getId());
+
+        return orderDto;
     }
 
-    private Set<OrderItemDto> getOrderItemDtos(Order order) {
-        List<OrderItemDto> dtos = order.getOrderItems().stream()
+    private Set<OrderItemDto> getOrderItemDtos(Set<OrderItem> orderItems) {
+        List<OrderItemDto> dtos = orderItems.stream()
                 .map(oi -> {
                     OrderItemDto orderItemDto = new OrderItemDto();
                     orderItemDto.setId(oi.getId());

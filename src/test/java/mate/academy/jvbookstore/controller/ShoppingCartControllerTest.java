@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
 import mate.academy.jvbookstore.dto.cartitem.CartItemDto;
@@ -37,9 +38,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -68,7 +71,7 @@ public class ShoppingCartControllerTest {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("db/user/create-book-for-cart-items.sql"));
+                    new ClassPathResource("db/book/create-book-for-cart-items.sql"));
         }
         bookFromDb = bookRepository.findAll().get(0);
 
@@ -93,12 +96,11 @@ public class ShoppingCartControllerTest {
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void getShoppingCart_NoParams_UsersShoppingCart(
             @Autowired ShoppingCartRepository shoppingCartRepository) throws Exception {
-        ownersShoppingCart.getCartItems().add(cartItems.get(0));
-        ownersShoppingCart.getCartItems().add(cartItems.get(1));
-        shoppingCartRepository.save(ownersShoppingCart);
-        
+        ShoppingCartDto expected = addCartItemsToDb(shoppingCartRepository);
         MvcResult result = mockMvc.perform(get("/cart"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -107,14 +109,15 @@ public class ShoppingCartControllerTest {
                 result.getResponse().getContentAsString(), ShoppingCartDto.class);
        
         Assertions.assertNotNull(actual);
-        Assertions.assertEquals(ownersShoppingCart.getId(), actual.getId());
-        Assertions.assertEquals(ownersShoppingCart.getUser().getId(), actual.getUserId());
-        Assertions.assertEquals(2, actual.getCartItems().size());
+        Assertions.assertEquals(expected, actual);
     }
     
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
-    void addBookToShoppingCart_WithCorrectBook_UpdatedShoppingCart() throws Exception {
+    @Transactional
+    @Rollback
+    void addBookToShoppingCart_WithCorrectBook_UpdatedShoppingCart(
+            @Autowired CartItemRepository cartItemRepository) throws Exception {
         CartItemDto requestDto = new CartItemDto();
         requestDto.setBookId(bookFromDb.getId());
         requestDto.setQuantity(1);
@@ -125,32 +128,44 @@ public class ShoppingCartControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        ShoppingCartDto actual = objectMapper.readValue(
+        final ShoppingCartDto actual = objectMapper.readValue(
                 result.getResponse().getContentAsString(), ShoppingCartDto.class);
+
+        List<CartItem> cartItemsFromDb = cartItemRepository.findAll();
+        Assertions.assertEquals(1, cartItemsFromDb.size());
+        CartItem cartItemFromDb = cartItemsFromDb.get(0);
+        CartItemDto expectedCartItem = new CartItemDto();
+        expectedCartItem.setId(cartItemFromDb.getId());
+        expectedCartItem.setBookId(cartItemFromDb.getBook().getId());
+        expectedCartItem.setBookTitle(cartItemFromDb.getBook().getTitle());
+        expectedCartItem.setQuantity(cartItemFromDb.getQuantity());
+        Set<CartItemDto> cartItemDtosSet = new HashSet<>();
+        cartItemDtosSet.add(expectedCartItem);
+
+        ShoppingCartDto expected = new ShoppingCartDto();
+        expected.setId(ownersShoppingCart.getId());
+        expected.setUserId(ownersShoppingCart.getUser().getId());
+        expected.setCartItems(cartItemDtosSet);
     
         Assertions.assertNotNull(actual);
-        Assertions.assertEquals(ownersShoppingCart.getId(), actual.getId());
-        Assertions.assertEquals(ownersShoppingCart.getUser().getId(), actual.getUserId());
-
-        Assertions.assertNotNull(actual.getCartItems());
-        List<CartItemDto> cartItemDtos = new ArrayList<>(actual.getCartItems());
-
-        Assertions.assertEquals(1, cartItemDtos.size());
-        Assertions.assertEquals(requestDto.getBookId(), cartItemDtos.get(0).getBookId());
-        Assertions.assertEquals(bookFromDb.getTitle(), cartItemDtos.get(0).getBookTitle());
-        Assertions.assertEquals(requestDto.getQuantity(), cartItemDtos.get(0).getQuantity());
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void updateBookQuantity_WithValidCartItemIdAndQuantity_UpdatedCartItem(
             @Autowired ShoppingCartRepository shoppingCartRepository,
             @Autowired CartItemRepository cartItemRepository) throws Exception {
         CartItemDto requestDto = new CartItemDto();
         requestDto.setQuantity(5);
 
-        ownersShoppingCart.getCartItems().add(cartItems.get(0));
-        shoppingCartRepository.save(ownersShoppingCart);
+        CartItemDto expected = addCartItemsToDb(shoppingCartRepository).getCartItems().stream()
+                .limit(1)
+                .toList()
+                .get(0);
+        expected.setQuantity(5);
 
         Long cartItemId = cartItemRepository.findAll().get(0).getId();
 
@@ -164,14 +179,13 @@ public class ShoppingCartControllerTest {
                 result.getResponse().getContentAsString(), CartItemDto.class);
 
         Assertions.assertNotNull(actual);
-        Assertions.assertEquals(cartItemId, actual.getId());
-        Assertions.assertEquals(cartItems.get(0).getBook().getId(), actual.getBookId());
-        Assertions.assertEquals(cartItems.get(0).getBook().getTitle(), actual.getBookTitle());
-        Assertions.assertEquals(requestDto.getQuantity(), actual.getQuantity());
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void deleteBookFromShoppingCart_WithCorrectId_Success(
             @Autowired ShoppingCartRepository shoppingCartRepository,
             @Autowired CartItemRepository cartItemRepository) throws Exception {
@@ -191,13 +205,12 @@ public class ShoppingCartControllerTest {
 
     @Test
     @WithUserDetails(value = "owner@bookstore.com")
+    @Transactional
+    @Rollback
     void clearShoppingCart_NoParams_Success(
             @Autowired ShoppingCartRepository shoppingCartRepository,
             @Autowired CartItemRepository cartItemRepository) throws Exception {
-
-        ownersShoppingCart.getCartItems().add(cartItems.get(0));
-        ownersShoppingCart.getCartItems().add(cartItems.get(1));
-        shoppingCartRepository.save(ownersShoppingCart);
+        addCartItemsToDb(shoppingCartRepository);
 
         mockMvc.perform(delete("/cart/cart-items"))
                 .andExpect(status().isNoContent())
@@ -209,13 +222,8 @@ public class ShoppingCartControllerTest {
     }
 
     @AfterEach
-    void clearShoppingCart(@Autowired DataSource dataSource) throws SQLException {
+    void clearShoppingCart() {
         ownersShoppingCart.setCartItems(new HashSet<>());
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(true);
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("db/shoppingcart/clear-shopping-cart.sql"));
-        }
     }
 
     @AfterAll
@@ -230,8 +238,26 @@ public class ShoppingCartControllerTest {
             
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/book/delete-every-book.sql"));
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("db/shoppingcart/clear-shopping-cart.sql"));
         }
+    }
+
+    private ShoppingCartDto addCartItemsToDb(ShoppingCartRepository shoppingCartRepository) {
+        ownersShoppingCart.getCartItems().add(cartItems.get(0));
+        ownersShoppingCart.getCartItems().add(cartItems.get(1));
+        ShoppingCart shoppingCart = shoppingCartRepository.save(ownersShoppingCart);
+        ShoppingCartDto dto = new ShoppingCartDto();
+        dto.setId(shoppingCart.getId());
+        dto.setUserId(shoppingCart.getUser().getId());
+        dto.setCartItems(new HashSet<>(shoppingCart.getCartItems().stream()
+                .map(ci -> {
+                    CartItemDto cartItemDto = new CartItemDto();
+                    cartItemDto.setId(ci.getId());
+                    cartItemDto.setBookId(ci.getBook().getId());
+                    cartItemDto.setBookTitle(ci.getBook().getTitle());
+                    cartItemDto.setQuantity(ci.getQuantity());
+                    return cartItemDto;
+                })
+                .toList()));
+        return dto;
     }
 }

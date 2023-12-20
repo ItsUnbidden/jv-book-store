@@ -77,7 +77,8 @@ public class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void findAll_WithPageable_ListOfUsers() throws Exception {
+    void findAll_WithPageable_ListOfUsers(
+            @Autowired RoleRepository roleRepository) throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
 
         MvcResult result = mockMvc.perform(get("/users")
@@ -91,8 +92,8 @@ public class UserControllerTest {
         
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(2, actual.length);
-        Assertions.assertEquals(actual[0].getEmail(), "owner@bookstore.com");
-        Assertions.assertEquals(actual[1].getEmail(), userFromDb.getEmail());
+        Assertions.assertEquals("owner@bookstore.com", actual[0].getEmail());
+        Assertions.assertEquals(userFromDb.getEmail(), actual[1].getEmail());
     }
 
     @Test
