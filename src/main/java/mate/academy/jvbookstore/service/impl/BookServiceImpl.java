@@ -59,9 +59,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDto updateBook(Long id, CreateBookRequestDto requestDto) {
+    public BookDto updateBook(Long bookId, CreateBookRequestDto requestDto) {
+        List<Category> categoriesFromDb = requestDto.getCategoryIds().stream()
+                .map(id -> categoryRepository.findById(id).orElseThrow(() -> 
+                new EntityNotFoundException("There is no category with id " + id)))
+                .toList();
         Book book = bookMapper.toModel(requestDto);
-        book.setId(id);
+        book.setId(bookId);
+        book.setCategories(new HashSet<>(categoriesFromDb));
         return bookMapper.toDto(repository.save(book));
     }
 
