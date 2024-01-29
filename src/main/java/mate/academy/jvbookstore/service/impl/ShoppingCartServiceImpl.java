@@ -16,6 +16,7 @@ import mate.academy.jvbookstore.repository.cartitem.CartItemRepository;
 import mate.academy.jvbookstore.repository.role.RoleRepository;
 import mate.academy.jvbookstore.repository.shoppingcart.ShoppingCartRepository;
 import mate.academy.jvbookstore.service.ShoppingCartService;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +40,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public ShoppingCartDto addBookToShoppingCart(User user, CartItemDto requestDto) {
+    public ShoppingCartDto addBookToShoppingCart(User user,
+            @NonNull CartItemDto requestDto) {
         ShoppingCart shoppingCart = getShoppingCartByUserId(user.getId());
         Book book = bookMapper.bookFromId(requestDto.getBookId());
         CartItem cartItem = new CartItem();
@@ -51,7 +53,9 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public CartItemDto updateBookQuantity(Long cartItemId, CartItemDto requestDto, User user) {
+    public CartItemDto updateBookQuantity(@NonNull Long cartItemId,
+            @NonNull CartItemDto requestDto,
+            User user) {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> 
                 new EntityNotFoundException("Unable to find cart item by id " + cartItemId));
 
@@ -62,7 +66,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public void deleteBookFromShoppingCart(Long cartItemId, User user) {
+    public void deleteBookFromShoppingCart(@NonNull Long cartItemId,
+            User user) {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> 
                 new EntityNotFoundException("Unable to find cart item by id " + cartItemId));
 

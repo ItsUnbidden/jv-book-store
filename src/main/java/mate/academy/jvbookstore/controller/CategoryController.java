@@ -14,6 +14,7 @@ import mate.academy.jvbookstore.service.BookService;
 import mate.academy.jvbookstore.service.CategoryService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +57,7 @@ public class CategoryController {
                     description = "Forbidden")  
             }
     )
-    public CategoryDto createCategory(@RequestBody CategoryDto categoryDto) {
+    public CategoryDto createCategory(@RequestBody @NonNull CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
@@ -79,7 +80,7 @@ public class CategoryController {
     public List<CategoryDto> getAll(
             @Parameter(
                     description = "Pagination and sorting")
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return categoryService.findAll(pageable);
     }
 
@@ -106,7 +107,7 @@ public class CategoryController {
             @Parameter(
                 description = "Id of the required category",
                 required = true)
-            @PathVariable Long id) {
+            @PathVariable @NonNull Long id) {
         return categoryService.findById(id);
     }
 
@@ -136,8 +137,8 @@ public class CategoryController {
             @Parameter(
                 description = "Id of the required category",
                 required = true)
-            @PathVariable Long id, 
-            @RequestBody CategoryDto categoryDto) {
+            @PathVariable @NonNull Long id, 
+            @RequestBody @NonNull CategoryDto categoryDto) {
         return categoryService.update(id, categoryDto);
     }
 
@@ -164,7 +165,7 @@ public class CategoryController {
             @Parameter(
                 description = "Id of the required category",
                 required = true)
-            @PathVariable Long id) {
+            @PathVariable @NonNull Long id) {
         categoryService.delete(id);
     }
 
@@ -188,10 +189,10 @@ public class CategoryController {
             @Parameter(
                 description = "Id of the required category",
                 required = true)
-            @PathVariable Long id, 
+            @PathVariable @NonNull Long id, 
             @Parameter(
                 description = "Pagination and sorting")
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return bookService.findByCategoryId(id, pageable);
     }
 }

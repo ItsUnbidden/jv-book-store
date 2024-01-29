@@ -27,6 +27,7 @@ import mate.academy.jvbookstore.repository.shoppingcart.ShoppingCartRepository;
 import mate.academy.jvbookstore.service.OrderService;
 import mate.academy.jvbookstore.service.ShoppingCartService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final RoleRepository roleRepository;
 
     @Override
-    public OrderDto createOrder(User user, PlaceOrderRequestDto requestDto) {
+    public OrderDto createOrder(User user, @NonNull PlaceOrderRequestDto requestDto) {
         ShoppingCart shoppingCart = getUserShoppingCart(user);
         Order order = new Order();
         order.setOrderItems(initializeOrderItems(order, shoppingCart.getCartItems()));
@@ -60,14 +61,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDto> findAllForUser(User user, Pageable pageable) {
+    public List<OrderDto> findAllForUser(User user, @NonNull Pageable pageable) {
         return orderRepository.findByUserId(user.getId(), pageable).stream()
                 .map(orderMapper::orderToDto)
                 .toList();
     }
 
     @Override
-    public OrderDto updateOrderStatus(Long orderId, UpdateStatusRequestDto requestDto) {
+    public OrderDto updateOrderStatus(@NonNull Long orderId,
+            @NonNull UpdateStatusRequestDto requestDto) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> 
                 new EntityNotFoundException("There is no order with id " + orderId));
         order.setStatus(requestDto.getStatus());
@@ -75,8 +77,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderItemDto> findAllOrderItemsForOrderById(Long orderId,
-            Pageable pageable, User user) {
+    public List<OrderItemDto> findAllOrderItemsForOrderById(@NonNull Long orderId,
+            @NonNull Pageable pageable,
+            User user) {
         
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId, pageable);
 
@@ -90,7 +93,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderItemDto findOrderItemByIdForOrderById(Long orderId, Long itemId, User user) {
+    public OrderItemDto findOrderItemByIdForOrderById(@NonNull Long orderId,
+            @NonNull Long itemId,
+            User user) {
         OrderItem orderItem = orderItemRepository.findOrderItemByIdForOrderById(orderId, itemId)
                 .orElseThrow(() -> new EntityNotFoundException("There is no item with id " 
                 + itemId + " within order with id " + orderId));
@@ -104,7 +109,9 @@ public class OrderServiceImpl implements OrderService {
         return shoppingCartRepository.findByUserId(user.getId()).get();
     }
 
-    private Set<OrderItem> initializeOrderItems(Order order, Set<CartItem> cartItems) {
+    @NonNull
+    private Set<OrderItem> initializeOrderItems(@NonNull Order order,
+            @NonNull Set<CartItem> cartItems) {
         Set<OrderItem> orderItems = new HashSet<>();
 
         for (CartItem cartItem : cartItems) {
@@ -118,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
         return orderItems;
     }
 
-    private BigDecimal calculateTotalPrice(Set<OrderItem> orderItems) {
+    private BigDecimal calculateTotalPrice(@NonNull Set<OrderItem> orderItems) {
         BigDecimal total = BigDecimal.ZERO;
 
         for (OrderItem orderItem : orderItems) {
@@ -128,7 +135,8 @@ public class OrderServiceImpl implements OrderService {
         return total;
     }
 
-    private void isUserAllowedToChangeItem(OrderItem orderItem, User user) {
+    private void isUserAllowedToChangeItem(OrderItem orderItem,
+            User user) {
         final Role adminRole = roleRepository.findByName(RoleName.ADMIN).get();
 
         if (!user.getRoles().contains(adminRole)

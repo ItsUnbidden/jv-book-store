@@ -7,15 +7,23 @@ import mate.academy.jvbookstore.dto.order.UpdateStatusRequestDto;
 import mate.academy.jvbookstore.dto.orderitem.OrderItemDto;
 import mate.academy.jvbookstore.model.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 public interface OrderService {
-    OrderDto createOrder(User user, PlaceOrderRequestDto requestDto);
+    OrderDto createOrder(User user,
+            @NonNull PlaceOrderRequestDto requestDto);
 
-    List<OrderDto> findAllForUser(User user, Pageable pageable);
+    List<OrderDto> findAllForUser(User user,
+            @NonNull Pageable pageable);
 
-    OrderDto updateOrderStatus(Long orderId, UpdateStatusRequestDto requestDto);
+    OrderDto updateOrderStatus(@NonNull Long orderId,
+            @NonNull UpdateStatusRequestDto requestDto);
 
-    List<OrderItemDto> findAllOrderItemsForOrderById(Long orderId, Pageable pageablem, User user);
+    List<OrderItemDto> findAllOrderItemsForOrderById(@NonNull Long orderId,
+            @NonNull Pageable pageable,
+            User user);
 
-    OrderItemDto findOrderItemByIdForOrderById(Long orderId, Long itemId, User user);
+    OrderItemDto findOrderItemByIdForOrderById(@NonNull Long orderId,
+            @NonNull Long itemId, 
+            User user);
 }

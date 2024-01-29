@@ -13,6 +13,7 @@ import mate.academy.jvbookstore.dto.shoppingcart.ShoppingCartDto;
 import mate.academy.jvbookstore.model.User;
 import mate.academy.jvbookstore.service.ShoppingCartService;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,7 +70,7 @@ public class ShoppingCartController {
     )
     public ShoppingCartDto addBookToShoppingCart(
             Authentication authentication,
-            @RequestBody @Valid CartItemDto requestDto) {
+            @RequestBody @Valid @NonNull CartItemDto requestDto) {
         return shoppingCartService.addBookToShoppingCart(
                 (User)authentication.getPrincipal(), requestDto);
     }
@@ -95,8 +96,8 @@ public class ShoppingCartController {
             @Parameter(
                 description = "Id of the required cart item"
             )
-            @PathVariable Long cartItemId, 
-            @RequestBody @Valid CartItemDto requestDto) {
+            @PathVariable @NonNull Long cartItemId, 
+            @RequestBody @Valid @NonNull CartItemDto requestDto) {
         return shoppingCartService.updateBookQuantity(cartItemId, requestDto,
                 (User)authentication.getPrincipal());
     }
@@ -119,7 +120,7 @@ public class ShoppingCartController {
             @Parameter(
                 description = "Id of the required cart item"
             )
-            @PathVariable Long cartItemId) {
+            @PathVariable @NonNull Long cartItemId) {
         shoppingCartService.deleteBookFromShoppingCart(cartItemId,
                 (User)authentication.getPrincipal());
     }

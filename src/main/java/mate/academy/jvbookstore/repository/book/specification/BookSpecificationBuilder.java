@@ -7,6 +7,7 @@ import mate.academy.jvbookstore.model.Book;
 import mate.academy.jvbookstore.repository.SpecificationBuilder;
 import mate.academy.jvbookstore.repository.SpecificationProviderManager;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class BookSpecificationBuilder implements SpecificationBuilder<Book> {
     private final SpecificationProviderManager<Book> specProviderManager;
 
+    @NonNull
     @Override
     public Specification<Book> build(SearchParametersDto searchParameters) {
         Specification<Book> spec = Specification.where(null);
