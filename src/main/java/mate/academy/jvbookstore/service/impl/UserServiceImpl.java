@@ -16,6 +16,7 @@ import mate.academy.jvbookstore.repository.shoppingcart.ShoppingCartRepository;
 import mate.academy.jvbookstore.repository.user.UserRepository;
 import mate.academy.jvbookstore.service.UserService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
 
     @Override
-    public UserResponseDto registerUser(UserRegistrationRequestDto requestDto) 
+    public UserResponseDto registerUser(@NonNull UserRegistrationRequestDto requestDto) 
             throws RegistrationException {
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
             throw new RegistrationException("User with email " 
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto updateRoles(Long id, List<Role> roles) {
+    public UserResponseDto updateRoles(@NonNull Long id, @NonNull List<Role> roles) {
         User user = userRepository.findById(id).orElseThrow(() -> 
                 new EntityNotFoundException("There is no registred user with id " + id));
         user.setRoles(roles);
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> findAll(Pageable pageable) {
+    public List<UserResponseDto> findAll(@NonNull Pageable pageable) {
         return userRepository.findAll(pageable).stream()
                 .map(mapper::toDto)
                 .toList();

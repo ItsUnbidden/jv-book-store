@@ -132,6 +132,7 @@ class BookServiceImplTest {
 
     @Test
     void updateBook_WithChangedTitle_UpdatedBook() {
+        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
         when(bookMapper.toModel(requestDto)).thenReturn(book);
         when(bookMapper.toDto(book)).thenReturn(bookDto);
         when(bookRepository.save(book)).thenReturn(book);

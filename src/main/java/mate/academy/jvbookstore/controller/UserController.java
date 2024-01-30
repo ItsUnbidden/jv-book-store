@@ -12,6 +12,7 @@ import mate.academy.jvbookstore.dto.user.UserResponseDto;
 import mate.academy.jvbookstore.model.Role;
 import mate.academy.jvbookstore.service.UserService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -56,11 +57,11 @@ public class UserController {
             @Parameter(
                 description = "Id of the required user",
                 required = true) 
-            @PathVariable Long id, 
+            @PathVariable @NonNull Long id, 
             @Parameter(
                 description = "List of roles to apply to the user",
                 required = true) 
-            @RequestBody List<Role> roles) {
+            @RequestBody @NonNull List<Role> roles) {
         return service.updateRoles(id, roles);
     }
 
@@ -89,7 +90,7 @@ public class UserController {
     public List<UserResponseDto> findAll(
             @Parameter(
                 description = "Pagination and sorting") 
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return service.findAll(pageable);
     }
 }

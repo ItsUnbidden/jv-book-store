@@ -6,20 +6,23 @@ import mate.academy.jvbookstore.dto.book.BookDtoWithoutCategoryIds;
 import mate.academy.jvbookstore.dto.book.BookSearchParametersDto;
 import mate.academy.jvbookstore.dto.book.CreateBookRequestDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 public interface BookService {
-    BookDto save(CreateBookRequestDto requestDto);
+    BookDto save(@NonNull CreateBookRequestDto requestDto);
 
-    List<BookDto> findAll(Pageable pageable);
+    List<BookDto> findAll(@NonNull Pageable pageable);
 
-    BookDto findById(Long id);
+    BookDto findById(@NonNull Long id);
 
-    void deleteById(Long id);
+    void deleteById(@NonNull Long id);
 
-    BookDto updateBook(Long id, CreateBookRequestDto requestDto);
+    BookDto updateBook(@NonNull Long id,
+            @NonNull CreateBookRequestDto requestDto);
 
-    List<BookDto> searchBooks(BookSearchParametersDto searchParameters,
-            Pageable pageable);
+    List<BookDto> searchBooks(@NonNull BookSearchParametersDto searchParameters,
+            @NonNull Pageable pageable);
 
-    List<BookDtoWithoutCategoryIds> findByCategoryId(Long categoryId, Pageable pageable);
+    List<BookDtoWithoutCategoryIds> findByCategoryId(@NonNull Long categoryId,
+            @NonNull Pageable pageable);
 }

@@ -16,6 +16,7 @@ import mate.academy.jvbookstore.repository.book.BookRepository;
 import mate.academy.jvbookstore.repository.category.CategoryRepository;
 import mate.academy.jvbookstore.service.BookService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -30,9 +31,9 @@ public class BookServiceImpl implements BookService {
     private final SpecificationBuilder<Book> specBuilder;
 
     @Override
-    public BookDto save(CreateBookRequestDto requestDto) {
+    public BookDto save(@NonNull CreateBookRequestDto requestDto) {
         List<Category> categoriesFromDb = requestDto.getCategoryIds().stream()
-                .map(id -> categoryRepository.findById(id).orElseThrow(() -> 
+                .map(id -> categoryRepository.findById(id != null ? id : 0L).orElseThrow(() -> 
                 new EntityNotFoundException("There is no category with id " + id)))
                 .toList();
         Book book = bookMapper.toModel(requestDto);
@@ -41,40 +42,47 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> findAll(Pageable pageable) {
+    public List<BookDto> findAll(@NonNull Pageable pageable) {
         return repository.findAll(pageable).stream()
                 .map(bookMapper::toDto)
                 .toList();
     }
 
     @Override
-    public BookDto findById(Long id) {
+    public BookDto findById(@NonNull Long id) {
         return bookMapper.toDto(repository.findById(id).orElseThrow(() -> 
                 new EntityNotFoundException("Can't find book by id " + id)));
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(@NonNull Long id) {
         repository.deleteById(id);
     }
 
     @Override
-    public BookDto updateBook(Long id, CreateBookRequestDto requestDto) {
+    public BookDto updateBook(@NonNull Long bookId, 
+            @NonNull CreateBookRequestDto requestDto) {
+        List<Category> categoriesFromDb = requestDto.getCategoryIds().stream()
+                .map(id -> categoryRepository.findById(id != null ? id : 0L).orElseThrow(() -> 
+                new EntityNotFoundException("There is no category with id " + id)))
+                .toList();
         Book book = bookMapper.toModel(requestDto);
-        book.setId(id);
+        book.setId(bookId);
+        book.setCategories(new HashSet<>(categoriesFromDb));
         return bookMapper.toDto(repository.save(book));
     }
 
     @Override
-    public List<BookDto> searchBooks(BookSearchParametersDto searchParameters,
-            Pageable pageable) {
+    public List<BookDto> searchBooks(@NonNull BookSearchParametersDto searchParameters,
+            @NonNull Pageable pageable) {
         return repository.findAll(specBuilder.build(searchParameters), pageable).stream()
                 .map(bookMapper::toDto)
                 .toList();
     }
 
     @Override
-    public List<BookDtoWithoutCategoryIds> findByCategoryId(Long categoryId, Pageable pageable) {
+    public List<BookDtoWithoutCategoryIds> findByCategoryId(@NonNull Long categoryId,
+            @NonNull Pageable pageable) {
         return repository.findAllByCategoryId(categoryId, pageable).stream()
                 .map(bookMapper::toBookDtoWithoutCategoryIds)
                 .toList();

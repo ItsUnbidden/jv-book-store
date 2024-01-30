@@ -14,6 +14,7 @@ import mate.academy.jvbookstore.dto.user.UserResponseDto;
 import mate.academy.jvbookstore.exception.RegistrationException;
 import mate.academy.jvbookstore.security.AuthenticationService;
 import mate.academy.jvbookstore.service.UserService;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,7 +69,8 @@ public class AuthenticationController {
                     description = "Provided credentials have invalid format")
             }
     )
-    public UserResponseDto register(@RequestBody @Valid UserRegistrationRequestDto requestDto) 
+    public UserResponseDto register(@RequestBody @Valid @NonNull
+            UserRegistrationRequestDto requestDto) 
             throws RegistrationException {
         return userService.registerUser(requestDto);
     }

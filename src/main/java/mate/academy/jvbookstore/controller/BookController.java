@@ -15,6 +15,7 @@ import mate.academy.jvbookstore.dto.book.CreateBookRequestDto;
 import mate.academy.jvbookstore.service.BookService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,7 +53,7 @@ public class BookController {
     public List<BookDto> getAll(
             @Parameter(
                 description = "Pagination and sorting") 
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return bookService.findAll(pageable);
     }
 
@@ -78,7 +79,7 @@ public class BookController {
                     description = "Forbidden")  
             }
     )
-    public BookDto createBook(@RequestBody @Valid CreateBookRequestDto requestDto) {
+    public BookDto createBook(@RequestBody @Valid @NonNull CreateBookRequestDto requestDto) {
         return bookService.save(requestDto);
     }
 
@@ -105,7 +106,7 @@ public class BookController {
             @Parameter(
                 description = "Id of the required book",
                 required = true)
-            @PathVariable Long id) {
+            @NonNull @PathVariable Long id) {
         return bookService.findById(id);
     }
 
@@ -132,7 +133,7 @@ public class BookController {
             @Parameter(
                 description = "Id of the required book",
                 required = true)
-            @PathVariable Long id) {
+            @NonNull @PathVariable Long id) {
         bookService.deleteById(id);
     }
 
@@ -158,8 +159,8 @@ public class BookController {
                     description = "Forbidden")
             }
     )
-    public BookDto updateBook(@PathVariable Long id, 
-            @RequestBody @Valid CreateBookRequestDto requestDto) {
+    public BookDto updateBook(@NonNull @PathVariable Long id, 
+            @RequestBody @Valid @NonNull CreateBookRequestDto requestDto) {
         return bookService.updateBook(id, requestDto);
     }
 
@@ -183,10 +184,10 @@ public class BookController {
             @Parameter(
                 description = "Parameters for search. "
                 + "Price should look like [{min value}, {max value}]")
-            BookSearchParametersDto searchParameters,
+            @NonNull BookSearchParametersDto searchParameters,
             @Parameter(
                 description = "Pagination and sorting") 
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return bookService.searchBooks(searchParameters, pageable);
     }
 }

@@ -16,6 +16,7 @@ import mate.academy.jvbookstore.dto.orderitem.OrderItemDto;
 import mate.academy.jvbookstore.model.User;
 import mate.academy.jvbookstore.service.OrderService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,7 +52,7 @@ public class OrderController {
     )
     public OrderDto placeOrder(
             Authentication authentication, 
-            @RequestBody @Valid PlaceOrderRequestDto requestDto) {
+            @RequestBody @Valid @NonNull PlaceOrderRequestDto requestDto) {
         return orderService.createOrder((User)authentication.getPrincipal(), requestDto);
     }
 
@@ -75,7 +76,7 @@ public class OrderController {
             Authentication authentication, 
             @Parameter(
                 description = "Pagination and sorting")
-            Pageable pageable) {
+            @NonNull Pageable pageable) {
         return orderService.findAllForUser((User)authentication.getPrincipal(), pageable);
     }
 
@@ -107,8 +108,8 @@ public class OrderController {
     public OrderDto updateOrderStatus(
             @Parameter(
                 description = "Id of the required order")
-            @PathVariable Long orderId, 
-            @RequestBody @Valid UpdateStatusRequestDto requestDto) {
+            @PathVariable @NonNull Long orderId, 
+            @RequestBody @Valid @NonNull UpdateStatusRequestDto requestDto) {
         return orderService.updateOrderStatus(orderId, requestDto);
     }
 
@@ -132,11 +133,13 @@ public class OrderController {
             }
     )
     public List<OrderItemDto> getAllItemsFromOrder(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required order")
-            @PathVariable Long orderId, 
-            Pageable pageable) {
-        return orderService.findAllOrderItemsForOrderById(orderId, pageable);
+            @PathVariable @NonNull Long orderId, 
+            @NonNull Pageable pageable) {
+        return orderService.findAllOrderItemsForOrderById(orderId, pageable,
+                (User) authentication.getPrincipal());
     }
 
     @GetMapping("{orderId}/items/{itemId}")
@@ -159,12 +162,14 @@ public class OrderController {
             }
     )
     public OrderItemDto getOrderItemByIdFromOrder(
+            Authentication authentication,
             @Parameter(
                 description = "Id of the required order")
-            @PathVariable Long orderId,
+            @PathVariable @NonNull Long orderId,
             @Parameter(
                 description = "Id of the required order item")
-            @PathVariable Long itemId) {
-        return orderService.findOrderItemByIdForOrderById(orderId, itemId);
+            @PathVariable @NonNull Long itemId) {
+        return orderService.findOrderItemByIdForOrderById(orderId, itemId,
+                (User)authentication.getPrincipal());
     }
 }
