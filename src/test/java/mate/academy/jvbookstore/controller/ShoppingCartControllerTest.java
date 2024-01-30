@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -162,6 +163,7 @@ public class ShoppingCartControllerTest {
         requestDto.setQuantity(5);
 
         CartItemDto expected = addCartItemsToDb(shoppingCartRepository).getCartItems().stream()
+                .sorted((ci1, ci2) -> ci1.getId().compareTo(ci2.getId()))
                 .limit(1)
                 .toList()
                 .get(0);
