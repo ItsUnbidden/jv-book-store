@@ -19,7 +19,7 @@
         <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
 		<maven.checkstyle.plugin.configLocation>checkstyle.xml</maven.checkstyle.plugin.configLocation>
         <jjwt.version>0.11.5</jjwt.version>
-        <testcontainers.version>1.18.0</testcontainers.version>  
+        <testcontainers.version>1.19.4</testcontainers.version>  
 	</properties>
 	<dependencies>
         <dependency>
