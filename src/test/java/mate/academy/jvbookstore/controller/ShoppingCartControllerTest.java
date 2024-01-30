@@ -162,6 +162,7 @@ public class ShoppingCartControllerTest {
         requestDto.setQuantity(5);
 
         CartItemDto expected = addCartItemsToDb(shoppingCartRepository).getCartItems().stream()
+                .sorted((ci1, ci2) -> ci1.getId().compareTo(ci2.getId()))
                 .limit(1)
                 .toList()
                 .get(0);
