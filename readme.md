@@ -14,6 +14,8 @@
  - A shopping cart for users to add their books into
  - Ordering system
  - Swagger UI for integration into other projects and trying out the server
+
+**You can watch an overview of the project [here](https://www.loom.com/share/4fec6d3c938b43a7874a692785b5d1b6?sid=434edd89-7879-4286-bc33-554aa2f8f9d8).**
 ## Technologies
 The project is built using mainly **Spring Framework**. Here is a complete list:
  - Spring Boot
